@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Michi# (Tres en Línea)</title>
+    <link rel="icon" href="./icono.png" type="image/x-icon">
+    <link href="./bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+    background-color: #1f1f1f;
+    color: #00ff00;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    margin-top: 20px;
+}
+
+.cell {
+    cursor: pointer;
+    font-size: 3rem;
+    width: 100px;
+    height: 100px;
+    text-align: center;
+    vertical-align: middle;
+    border: 2px solid #00ff00;
+    transition: background-color 0.3s, color 0.3s, transform 0.3s, border-color 0.3s;
+}
+
+.cell:hover {
+    background-color: #00ff00;
+    color: #1f1f1f;
+    border-color: #ff0000;
+    text-shadow: 2px 2px 4px #ff0000;
+}
+
+.cell.highlight {
+    background-color: #ff0000;
+    color: #1f1f1f;
+    transform: scale(1.1);
+    text-shadow: 2px 2px 4px #00ff00;
+}
+
+.btn-restart {
+    margin-top: 10px;
+    background-color: #ff0000;
+    color: #1f1f1f;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+.btn-restart:hover {
+    background-color: #c30000;
+    text-shadow: none;
+}
+
+#rematchButton {
+    display: none;
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #00ff00;
+    color: #1f1f1f;
+    border: none;
+    transition: background-color 0.3s;
+}
+
+#rematchButton:hover {
+    background-color: #009900;
+    text-shadow: none;
+}
+
+#result {
+    margin-top: 20px;
+    font-size: 1.5rem;
+    transition: color 0.3s;
+}
+
+#winBars {
+    margin-top: 20px;
+}
+
+.progress {
+    height: 30px;
+}
+
+.progress-bar {
+    transition: width 0.5s ease-in-out;
+}
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1 class="text-center">Michi #</h1>
+    <h6 class="text-center">
+    <a href="https://web.facebook.com/marco.suarezsh/" target="_blank">
+        <img src="./facebook.png" width="25" height="25" alt="Icono de Facebook">
+    </a>
+    </h6>
+
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <table class="table table-bordered text-center">
+                <tbody>
+                    <tr>
+                        <td class="cell" id="cell-0" onclick="makeMove(0)"></td>
+                        <td class="cell" id="cell-1" onclick="makeMove(1)"></td>
+                        <td class="cell" id="cell-2" onclick="makeMove(2)"></td>
+                    </tr>
+                    <tr>
+                        <td class="cell" id="cell-3" onclick="makeMove(3)"></td>
+                        <td class="cell" id="cell-4" onclick="makeMove(4)"></td>
+                        <td class="cell" id="cell-5" onclick="makeMove(5)"></td>
+                    </tr>
+                    <tr>
+                        <td class="cell" id="cell-6" onclick="makeMove(6)"></td>
+                        <td class="cell" id="cell-7" onclick="makeMove(7)"></td>
+                        <td class="cell" id="cell-8" onclick="makeMove(8)"></td>
+                    </tr>
+                </tbody>
+            </table>
+            <p id="result" class="text-center"></p>
+            <button id="rematchButton" class="btn btn-secondary" onclick="rematch()">Revancha</button>
+            <div class="text-center">
+                <button class="btn btn-restart" onclick="restartGame()">Reiniciar</button>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-md-6 offset-md-3">
+            <div id="winBars" class="progress">
+                <div id="winBarX" class="progress-bar bg-success" style="width: 0%;">X</div>
+                <div id="winBarO" class="progress-bar bg-primary" style="width: 0%;">O</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Agrega los enlaces a los archivos JavaScript de Bootstrap y tus propios scripts -->
+<script src="./bootstrap.bundle.min.js"></script>
+<script>
+    let currentPlayer = "X";
+    let gameOver = false;
+    let winsX = 0;
+    let winsO = 0;
+    let firstPlayer = "X";
+    const cells = ["", "", "", "", "", "", "", "", ""];
+
+    function makeMove(cellIndex) {
+        if (gameOver || cells[cellIndex] !== "") return;
+
+        cells[cellIndex] = currentPlayer;
+        document.getElementById(`cell-${cellIndex}`).textContent = currentPlayer;
+
+        if (checkWinner()) {
+            document.getElementById("result").textContent = `¡Jugador ${currentPlayer} gana!`;
+            updateWins(currentPlayer);
+            showRematchButton();
+            highlightWinningCells();
+            gameOver = true;
+        } else if (checkDraw()) {
+            document.getElementById("result").textContent = "¡Empate!";
+            showRematchButton();
+            gameOver = true;
+        } else {
+            currentPlayer = currentPlayer === "X" ? "O" : "X";
+        }
+    }
+
+    function checkWinner() {
+        const winCombos = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
+            [0, 4, 8], [2, 4, 6]           // Diagonales
+        ];
+
+        for (const combo of winCombos) {
+            const [a, b, c] = combo;
+            if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    function checkDraw() {
+        return cells.every(cell => cell !== "");
+    }
+
+    function highlightWinningCells() {
+        const winCombos = [
+            [0, 1, 2], [3, 4, 5], [6, 7, 8], // Filas
+            [0, 3, 6], [1, 4, 7], [2, 5, 8], // Columnas
+            [0, 4, 8], [2, 4, 6]           // Diagonales
+        ];
+
+        for (const combo of winCombos) {
+            const [a, b, c] = combo;
+            if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+                document.getElementById(`cell-${a}`).classList.add("highlight");
+                document.getElementById(`cell-${b}`).classList.add("highlight");
+                document.getElementById(`cell-${c}`).classList.add("highlight");
+                break;
+            }
+        }
+    }
+
+    function restartGame() {
+        resetGame();
+        resetWinBars();
+        hideRematchButton();
+    }
+
+    function rematch() {
+        resetGame();
+        hideRematchButton();
+        firstPlayer = firstPlayer === "X" ? "O" : "X";
+        currentPlayer = firstPlayer;
+    }
+
+    function updateWins(player) {
+        if (player === "X") {
+            winsX++;
+            document.getElementById("winBarX").style.width = `${winsX * 10}%`;
+        } else {
+            winsO++;
+            document.getElementById("winBarO").style.width = `${winsO * 10}%`;
+        }
+    }
+
+    function resetGame() {
+        for (let i = 0; i < cells.length; i++) {
+            cells[i] = "";
+            document.getElementById(`cell-${i}`).textContent = "";
+            document.getElementById(`cell-${i}`).classList.remove("highlight");
+        }
+        document.getElementById("result").textContent = "";
+        gameOver = false;
+        currentPlayer = firstPlayer;
+    }
+
+    function resetWinBars() {
+        winsX = 0;
+        winsO = 0;
+        document.getElementById("winBarX").style.width = "0%";
+        document.getElementById("winBarO").style.width = "0%";
+    }
+
+    function showRematchButton() {
+        document.getElementById("rematchButton").style.display = "block";
+    }
+
+    function hideRematchButton() {
+        document.getElementById("rematchButton").style.display = "none";
+    }
+</script>
+</body>
+</html>
+
